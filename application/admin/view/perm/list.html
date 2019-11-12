@@ -1,0 +1,99 @@
+{extend name="layout/layout"/}
+{block name="title"}
+权限节点列表
+{/block}
+{block name="css"}
+{/block}
+{block name="main"}
+<a class="layui-btn layui-btn-normal" href="/perm/detail">添加</a>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>权限节点</th>
+        <th>父节点</th>
+        <th>控制器/方法</th>
+        <th>描述</th>
+        <th>创建时间</th>
+        <th>状态</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $permList as $perm}
+    <tr>
+        <td>{$perm['title']}</td>
+        <td>父节点</td>
+        <td>{$perm['action']}</td>
+        <td>{$perm['desc']}</td>
+        <td>{$perm['create_time']}</td>
+        <td>
+            {if $perm['status']}
+            <button class="layui-btn layui-btn-normal updateStatus" data-status="0" data-id="{$perm['id']}">显示</button>
+            {else}
+            <button class="layui-btn layui-btn-danger updateStatus" data-status="1" data-id="{$perm['id']}">隐藏</button>
+            {/if}
+        </td>
+        <td>
+            <a class="layui-btn layui-btn-primary" href="/perm/detail?id={$perm['id']}">编辑</a>
+        </td>
+    </tr>
+    {if isset($perm['children'])}
+    {foreach $perm['children'] as $p}
+    <tr style="color: #01AAED">
+        <td>&nbsp;&nbsp;&nbsp;&nbsp;|--{$p['title']}</td>
+        <td>{$p['parent']->title}</td>
+        <td>{$p['action']}</td>
+        <td>{$p['desc']}</td>
+        <td>{$p['create_time']}</td>
+        <td>
+            {if $p['status']}
+            <button class="layui-btn layui-btn-normal updateStatus" data-status="0">显示</button>
+            {else}
+            <button class="layui-btn layui-btn-danger updateStatus" data-status="1">隐藏</button>
+            {/if}
+        </td>
+        <td>
+            <a class="layui-btn layui-btn-primary" href="/perm/detail?id={$children['id']}">编辑</a>
+        </td>
+    </tr>
+    {/foreach}
+    {/if}
+    {/foreach}
+    </tbody>
+    <tfoot>
+
+    </tfoot>
+</table>
+{/block}
+{block name="javascript"}
+<script>
+    $(function () {
+        $(".updateStatus").on("click",function () {
+            //console.log($(this).attr('data-status'));
+            let status = $(this).attr('data-status');
+            let id = $(this).attr('data-id');
+            let msg = status?'显示':'隐藏';
+            layer.confirm('确定要设置'+msg+'吗？',{
+                btn: ['取消','确定'] //按钮
+            },function () {
+                return false;
+            },function () {
+                $.post('/perm/status',{
+                    id:id,
+                    status:status
+                },function (res) {
+                    res = JSON.parse(res);
+                    if(res.status){
+                        layer.msg(res.result.message,{icon:6,time:1000});
+                        setTimeout(function () {
+                            window.location.reload();
+                        },1000);
+                    }else{
+                        layer.msg(res.result.message,{icon:5,time:1000});
+                    }
+                })
+            })
+        })
+    })
+</script>
+{/block}

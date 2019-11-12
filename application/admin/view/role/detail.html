@@ -1,0 +1,155 @@
+{extend name="layout/layout"/}
+{block name="title"}
+{if $role['id']}修改{else}添加{/if}角色
+{/block}
+{block name="css"}
+{/block}
+{block name="main"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>{if $role['id']}修改{else}添加{/if}角色</legend>
+</fieldset>
+
+<form class="layui-form" action="" lay-filter="example" onload="setStatus()">
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" lay-verify="name" autocomplete="off" placeholder="请输入角色" value="{$role['name']}" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限</label>
+        <div class="layui-input-block">
+            <div id="perm-tree" class="demo-tree"></div>
+            <div class="layui-btn-container" style="margin-top: 20px">
+                <button type="button" class="layui-btn layui-btn-sm" lay-demo="reload">重置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">节点状态</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用">
+        </div>
+    </div>
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block">
+            <textarea placeholder="请输入描述" class="layui-textarea" name="desc">{$role['desc']}</textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="id" value="{$role['id']}">
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="javascript"}
+<script>
+    let setStatus = null;
+    layui.use(['form', 'util', 'tree'], function(){
+        let form = layui.form
+            ,util = layui.util
+            ,tree = layui.tree
+            ,data = JSON.parse('{$permsJson}');
+        //console.log(data);
+        //开启复选框
+        tree.render({
+            elem: '#perm-tree'
+            ,data: data
+            ,showCheckbox: true  //是否显示复选框
+            ,id: 'permId'
+            ,isJump: true //是否允许点击节点时弹出新窗口跳转
+            ,click: function(obj){
+                let data = obj.data;  //获取当前点击的节点数据
+                console.log(data);
+                layer.msg('状态：'+ obj.state + '<br>节点数据：' + JSON.stringify(data));
+            }
+        });
+        util.event('lay-demo', {
+            reload: function(){
+                //重载实例
+                tree.reload('permId', {
+
+                });
+
+            }
+        });
+        //自定义验证规则
+        form.verify({
+            title: function(value){
+                if(value.length == 0){
+                    return '权限节点不能为空';
+                }
+            }
+            ,acton: function (value) {
+                if(value.length ==0){
+                    return '控制器/方法不能为空';
+                }
+            }
+        });
+        setStatus = function(){
+            form.val('example', {
+                "status": true //开关状态
+            });
+        };
+        //监听提交
+        form.on('submit(demo1)', function(data){
+            let checkedData = tree.getChecked('permId');
+            let zh_perm = [];//中文权限数组
+            let en_perm = [];//英文权限数组
+            $.map(checkedData,function (data) {
+                zh_perm.push(data.title);
+                en_perm.push(data.action);
+                if(data.hasOwnProperty('children')){
+                    $.map(data.children,function (child) {
+                        zh_perm.push(child.title);
+                        en_perm.push(child.action);
+                    })
+                }
+            });
+            console.log(zh_perm);
+            console.log(en_perm);
+            if(data.field.hasOwnProperty('status')){
+                data.field.status = 1;
+            }else{
+                data.field.status = 0;
+            }
+            console.log(data.field);
+            layer.alert(JSON.stringify(data.field), {
+                title: '最终的提交信息'
+            })
+            $.post('/role/detail',{
+                id:data.field.id,
+                name:data.field.name,
+                zh_perm:zh_perm.join(','),
+                en_perm:en_perm.join(','),
+                desc:data.field.desc,
+                status:data.field.status
+            },function (res) {
+                res = JSON.parse(res);
+                console.log(res);
+                if(res.status){
+                    layer.msg(res.result.message,{icon:6,time:1000});
+                    setTimeout(function () {
+                        window.location.href = '/role/list';
+                    },1000);
+                }else{
+                    layer.msg(res.result.message,{icon:5,time:1000});
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+{if $role['status']}
+<script>
+    setStatus();
+</script>
+{/if}
+{/block}

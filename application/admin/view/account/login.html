@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>后台管理-登陆</title>
+    <link rel="stylesheet" href="/static/public/layui/css/layui.css">
+    <link rel="stylesheet" href="/static/admin/css/login.css">
+</head>
+<body>
+<div id="container">
+    <div></div>
+    <div class="admin-login-background">
+        <!--<div class="admin-header">-->
+        <!--<img src="image/ex_logo.png" class="admin-logo">-->
+        <!--</div>-->
+        <form class="layui-form" action="">
+            <div>
+                <i class="layui-icon layui-icon-username admin-icon admin-icon-username"></i>
+                <input type="text" name="account" placeholder="请输入用户名"
+                       autocomplete="off"
+                       class="layui-input admin-input admin-input-username">
+            </div>
+            <div>
+                <i class="layui-icon layui-icon-password admin-icon admin-icon-password"></i>
+                <input type="password" name="password"
+                       placeholder="请输入密码"
+                       autocomplete="off"
+                       class="layui-input admin-input">
+            </div>
+            <div>
+                <input type="text" name="captcha_code"
+                       placeholder="请输入验证码"
+                       autocomplete="off"
+                       class="layui-input admin-input admin-input-verify">
+                <img class="admin-captcha" src="{:captcha_src()}"
+                     onclick="updateVerify(this)">
+            </div>
+            <button class="layui-btn admin-button" type="submit">登陆</button>
+        </form>
+    </div>
+</div>
+<script src="/static/public/layui/layui.all.js"></script>
+<script src="/static/public/js/common.js"></script>
+<script>
+    function updateVerify(dom) {
+        dom.src = '{:captcha_src()}?_='+Math.random();
+    }
+    $(function () {
+        $("form").submit(function () {
+            $.post('/account/login',$("form").serialize(),function (res) {
+                res = JSON.parse(res);
+                if(res.status){
+                    layer.msg(res.result.message,{icon:6,time:1000});
+                    setTimeout(function () {
+                        window.location.href = '/';
+                    },1000)
+                }else{
+                    $(".admin-captcha").attr('src','{:captcha_src()}?_='+Math.random());
+                    layer.msg(res.result.message,{icon:5,time:1000});
+                }
+                console.log(res);
+            });
+            return false;
+        })
+    })  
+
+</script>
+</body>
+</html>

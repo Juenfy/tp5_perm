@@ -1,0 +1,76 @@
+{extend name="layout/layout"/}
+{block name="title"}
+权限节点列表
+{/block}
+{block name="css"}
+{/block}
+{block name="main"}
+<a class="layui-btn layui-btn-normal" href="/role/detail">添加</a>
+<table class="layui-table">
+    <thead>
+    <tr>
+        <th>角色</th>
+        <th>拥有权限</th>
+        <th>描述</th>
+        <th>创建时间</th>
+        <th>状态</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {foreach $roleList as $role}
+    <tr>
+        <td>{$role['name']}</td>
+        <td>{$role['zh_perm']}</td>
+        <td>{$role['desc']}</td>
+        <td>{$role['create_time']}</td>
+        <td>
+            {if $role['status']}
+            <button class="layui-btn layui-btn-normal updateStatus" data-status="0" data-id="{$role['id']}">启用</button>
+            {else}
+            <button class="layui-btn layui-btn-danger updateStatus" data-status="1" data-id="{$role['id']}">禁用</button>
+            {/if}
+        </td>
+        <td>
+            <a class="layui-btn layui-btn-primary" href="/role/detail?id={$role['id']}">编辑</a>
+        </td>
+    </tr>
+    {/foreach}
+    </tbody>
+    <tfoot>
+    {$roleList->render()}
+    </tfoot>
+</table>
+{/block}
+{block name="javascript"}
+<script>
+    $(function () {
+        $(".updateStatus").on("click",function () {
+            //console.log($(this).attr('data-status'));
+            let status = $(this).attr('data-status');
+            let id = $(this).attr('data-id');
+            let msg = status?'启用':'禁用';
+            layer.confirm('确定要设置'+msg+'吗？',{
+                btn: ['取消','确定'] //按钮
+            },function () {
+                return false;
+            },function () {
+                $.post('/role/status',{
+                    id:id,
+                    status:status
+                },function (res) {
+                    res = JSON.parse(res);
+                    if(res.status){
+                        layer.msg(res.result.message,{icon:6,time:1000});
+                        setTimeout(function () {
+                            window.location.reload();
+                        },1000);
+                    }else{
+                        layer.msg(res.result.message,{icon:5,time:1000});
+                    }
+                })
+            })
+        })
+    })
+</script>
+{/block}

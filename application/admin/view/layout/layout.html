@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{block name="title"}{/block}</title>
+    <link href="/static/public/layui/css/layui.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="/static/admin/css/global.css" rel="stylesheet" type="text/css"  media="all" />
+    {block name="css"}{/block}
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    {:$admin = json_decode(base64_decode(cookie('admin')))}
+    <div class="layui-header header header-demo">
+        <div class="layui-main">
+            <a class="logo" href="/">
+                <img src="/static/admin/image/logo-1.png" alt="layui">
+            </a>
+            <ul class="layui-nav">
+                <li class="layui-nav-item ">
+                    <a>{$admin->nickname}</a>
+                </li>
+                <li class="layui-nav-item">
+                    <img src="{$admin->avatar}" alt="" width="40"style="border-radius: 50%">
+                </li>
+                <li class="layui-nav-item">
+                    <a href="/account/logout">退出</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree site-demo-nav">
+                {foreach $navList as $nav}
+                <li class="layui-nav-item">
+                    <a href="javascript:;">{$nav['title']}</a>
+                    {if isset($nav['children'])}
+                    <dl class="layui-nav-child">
+                        {foreach $nav['children'] as $children}
+                        <dd class="{if $children['action'] eq $action}layui-this{/if}"><a href="/{$children->action}">{$children->title}</a></dd>
+                        {/foreach}
+                    </dl>
+                    {/if}
+                </li>
+                {/foreach}
+            </ul>
+
+        </div>
+    </div>
+    <div class="layui-body site-demo" style="padding: 20px">
+        {block name="main"}{/block}
+    </div>
+    <div class="layui-footer footer footer-demo">
+        <div class="layui-main">
+            <p>2017 &copy; <a href="/">layui.com</a> MIT license</p>
+            <p>
+                <a href="http://fly.layui.com/jie/3147.html" target="_blank">捐赠作者</a>
+                <!--<a href="javascript:layer.msg('暂无此页');">关于我们</a>-->
+                <a href="mailto:824314051@qq.com">合作联系</a>
+                <a href="https://github.com/Juenfy/layui/" target="_blank">Git仓库</a>
+                <a href="http://fly.layui.com/jie/2461.html" target="_blank">微信公众号</a>
+            </p>
+        </div>
+    </div>
+    <div class="site-tree-mobile layui-hide">
+        <i class="layui-icon">&#xe602;</i>
+    </div>
+    <div class="site-mobile-shade"></div>
+</div>
+<script src="/static/public/layui/layui.all.js" type="text/javascript"></script>
+<script src="/static/public/js/common.js" type="text/javascript"></script>
+<script>
+    $(function () {
+        $("dd.layui-this").parents("li.layui-nav-item").addClass("layui-nav-itemed");
+        $(".site-tree-mobile").click(function () {
+            $("body").addClass("site-mobile");
+            $(".site-mobile-shade").click(function () {
+                $("body").removeClass("site-mobile");
+            });
+        });
+    });
+</script>
+{block name="javascript"}{/block}
+</body>
+</html>

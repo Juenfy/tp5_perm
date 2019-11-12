@@ -1,0 +1,121 @@
+{extend name="layout/layout"/}
+{block name="title"}
+{if $perm['id']}修改{else}添加{/if}权限节点
+{/block}
+{block name="css"}
+{/block}
+{block name="main"}
+<fieldset class="layui-elem-field layui-field-title">
+    <legend>{if $perm['id']}修改{else}添加{/if}权限节点</legend>
+</fieldset>
+
+<form class="layui-form" action="" lay-filter="example" onload="setStatus()">
+    <div class="layui-form-item">
+        <label class="layui-form-label">节点级别</label>
+        <div class="layui-input-block">
+            <select name="pid" lay-filter="aihao">
+                <option value="0">父节点</option>
+                {foreach $permList as $p}
+                    <option value="{$p['id']}" {if $perm['pid'] eq $p['id']}selected{/if}>{$p['title']}</option>
+                    {if isset($p['children'])}
+                        {foreach $p['children'] as $children}
+                        <option disabled>&nbsp;&nbsp;|--{$children->title}</option>
+                        {/foreach}
+                    {/if}
+                {/foreach}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限节点</label>
+        <div class="layui-input-block">
+            <input type="text" name="title" lay-verify="required" autocomplete="off" placeholder="请输入节点名字" value="{$perm['title']}" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">控制器/方法</label>
+        <div class="layui-input-block">
+            <input type="text" name="action" lay-verify="action" placeholder="请输入控制器/方法" autocomplete="off" value="{$perm['action']}" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">节点状态</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="status" lay-skin="switch" lay-text="显示|隐藏">
+        </div>
+    </div>
+
+    <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block">
+            <textarea placeholder="请输入描述" class="layui-textarea" name="desc">{$perm['desc']}</textarea>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <input type="hidden" name="id" value="{$perm['id']}">
+            <button type="submit" class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+        </div>
+    </div>
+</form>
+{/block}
+{block name="javascript"}
+<script>
+    let setStatus = null;
+    layui.use(['form'], function(){
+        let form = layui.form;
+
+        //自定义验证规则
+        form.verify({
+            title: function(value){
+                if(value.length == 0){
+                    return '权限节点不能为空';
+                }
+            }
+            ,acton: function (value) {
+                if(value.length ==0){
+                    return '控制器/方法不能为空';
+                }
+            }
+        });
+        setStatus = function(){
+            form.val('example', {
+                "status": true //开关状态
+            });
+        };
+        //监听提交
+        form.on('submit(demo1)', function(data){
+            if(data.field.hasOwnProperty('status')){
+                data.field.status = 1;
+            }else{
+                data.field.status = 0;
+            }
+            /*console.log(data.field);
+            layer.alert(JSON.stringify(data.field), {
+                title: '最终的提交信息'
+            })*/
+            $.post('/perm/detail',data.field,function (res) {
+                res = JSON.parse(res);
+                console.log(res);
+                if(res.status){
+                    layer.msg(res.result.message,{icon:6,time:1000});
+                    setTimeout(function () {
+                        window.location.href = '/perm/list';
+                    },1000);
+                }else{
+                    layer.msg(res.result.message,{icon:5,time:1000});
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+{if $perm['status']}
+<script>
+    setStatus();
+</script>
+{/if}
+{/block}
